@@ -1,0 +1,58 @@
+{
+  "session_id": "incri_20260329_023656_7fcaec4b",
+  "username": "incri",
+  "started_at": "2026-03-29T02:36:56.261845",
+  "ended_at": null,
+  "messages": [
+    {
+      "sender": "user",
+      "text": "i am feeling happy",
+      "timestamp": "2026-03-29T02:37:36.836969"
+    },
+    {
+      "sender": "serene",
+      "text": "Oh, that's absolutely wonderful to hear! It's so lovely when those happy feelings bubble up. I'm genuinely delighted for you. What do you think contributed to you feeling this way today?",
+      "timestamp": "2026-03-29T02:37:36.838053"
+    },
+    {
+      "sender": "user",
+      "text": "no, i am not feeling happy",
+      "timestamp": "2026-03-29T02:37:46.657711"
+    },
+    {
+      "sender": "serene",
+      "text": "I hear you, and it's completely okay to not feel happy right now. It takes real courage to acknowledge that. Sometimes, when we're feeling this way, we can be a bit hard on ourselves. If a close friend came to you and said, 'I'm not feeling happy,' what would be the first thing you'd say to them, and how might you offer yourself that same understanding?",
+      "timestamp": "2026-03-29T02:37:46.659089"
+    },
+    {
+      "sender": "user",
+      "text": "i messed up presentation today",
+      "timestamp": "2026-03-29T02:38:33.334305"
+    },
+    {
+      "sender": "serene",
+      "text": "Oh, I'm really sorry to hear that you're feeling down about your presentation today. It sounds like you're being pretty hard on yourself right now. If your best friend came to you and said they'd messed up a presentation, what would you tell them? What kind of advice or comfort would you offer them?",
+      "timestamp": "2026-03-29T02:38:33.335235"
+    },
+    {
+      "sender": "user",
+      "text": "i like to isolate myself",
+      "timestamp": "2026-03-29T02:39:02.335798"
+    },
+    {
+      "sender": "serene",
+      "text": "Thank you for sharing that with me. It takes courage to acknowledge patterns in our lives. Often, when we say we 'like' to isolate, there's a deeper reason or feeling beneath it, perhaps a need for peace, protection, or just a break from the world. If a close friend came to you and said, 'I really like to isolate myself,' what would be your first thought or question for them?",
+      "timestamp": "2026-03-29T02:39:02.336491"
+    },
+    {
+      "sender": "user",
+      "text": "do you know how i am feeling right now?",
+      "timestamp": "2026-03-29T02:39:21.818750"
+    },
+    {
+      "sender": "serene",
+      "text": "While I can't know exactly what's in your heart and mind, I'm here, fully present and ready to listen without judgment. Sometimes just the act of putting words to our feelings can bring a sense of clarity or release. Would you like to share a little bit about what's on your mind?",
+      "timestamp": "2026-03-29T02:39:21.820062"
+    }
+  ]
+}

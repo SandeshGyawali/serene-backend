@@ -1,0 +1,68 @@
+{
+  "session_id": "incri_20260329_024223_0371872e",
+  "username": "incri",
+  "started_at": "2026-03-29T02:42:23.081062",
+  "ended_at": "2026-03-29T02:46:11.490150",
+  "messages": [
+    {
+      "sender": "user",
+      "text": "hi there",
+      "timestamp": "2026-03-29T02:42:26.539071"
+    },
+    {
+      "sender": "serene",
+      "text": "Hi there! It's so good to connect with you. I'm here to listen and offer support, whatever you might be feeling or thinking about today. How are you doing, or what's on your mind right now?",
+      "timestamp": "2026-03-29T02:42:28.719766"
+    },
+    {
+      "sender": "user",
+      "text": "i am not feeling good",
+      "timestamp": "2026-03-29T02:42:35.966970"
+    },
+    {
+      "sender": "serene",
+      "text": "I hear you, and I'm really sorry to hear you're not feeling good. It takes courage to acknowledge that, and I appreciate you sharing it with me. Can you tell me a little more about what's making you feel this way, or what's on your mind?",
+      "timestamp": "2026-03-29T02:42:37.856238"
+    },
+    {
+      "sender": "user",
+      "text": "i messed up my final exams",
+      "timestamp": "2026-03-29T02:42:51.240673"
+    },
+    {
+      "sender": "serene",
+      "text": "Oh, I'm really sorry to hear that you feel you messed up your final exams. That must be incredibly disappointing and stressful, especially after all the hard work and effort you've put in. It's so easy to be hard on ourselves in moments like these, isn't it? If a close friend came to you right now and said they felt they messed up their final exams, what kind of advice or comfort would you offer them?",
+      "timestamp": "2026-03-29T02:42:54.723289"
+    },
+    {
+      "sender": "user",
+      "text": "i will tell them not to worry and try hard next time",
+      "timestamp": "2026-03-29T02:43:13.768897"
+    },
+    {
+      "sender": "serene",
+      "text": "That's such compassionate and wise advice you'd offer your friend – \"not to worry and try hard next time.\" It truly highlights your kindness and understanding. And it sounds like you deserve to offer yourself that very same kindness right now, doesn't it? What do you think would shift for you if you allowed yourself to treat this moment with the same understanding and forward-looking perspective you'd give to someone you care about?",
+      "timestamp": "2026-03-29T02:43:16.799789"
+    },
+    {
+      "sender": "user",
+      "text": "do you understand my problem?",
+      "timestamp": "2026-03-29T02:44:00.902534"
+    },
+    {
+      "sender": "serene",
+      "text": "Yes, I truly do. From what you've shared, I understand that you're feeling a deep sense of disappointment and worry because you believe you didn't perform well on your final exams. It sounds like a heavy burden to carry, especially when you've invested so much into them. It's completely natural to feel this way when something important doesn't go as planned. Is there anything else about how this is affecting you that you'd like to share?",
+      "timestamp": "2026-03-29T02:44:03.438356"
+    },
+    {
+      "sender": "user",
+      "text": "thats it. nothing more",
+      "timestamp": "2026-03-29T02:44:23.966249"
+    },
+    {
+      "sender": "serene",
+      "text": "Okay, I understand. It sounds like that feeling of having messed up the exams is really central to how you're feeling right now. It's a tough spot to be in, and it makes sense that it's weighing on you. Remember the kind advice you'd give your friend – \"not to worry and try hard next time\"? That forward-looking perspective is so valuable. What do you think is the very first step you could take to start shifting towards that \"try hard next time\" mindset, even if it's just a tiny one?",
+      "timestamp": "2026-03-29T02:44:26.362572"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "session_id": "incri_20260329_024656_898f6e96",
+  "username": "incri",
+  "started_at": "2026-03-29T02:46:56.349797",
+  "ended_at": null,
+  "messages": [
+    {
+      "sender": "user",
+      "text": "I messed up my final exams and feel terrible",
+      "timestamp": "2026-03-29T02:46:56.374421"
+    },
+    {
+      "sender": "serene",
+      "text": "It's completely understandable to feel terrible after feeling like you've messed up exams. That feeling is real, but remember, one set of exams doesn't define your entire worth or future. This isn't a final judgment, it's just one data point. Let's shift from dwelling on what happened to focusing on what you can control right now and moving forward.",
+      "timestamp": "2026-03-29T02:46:59.713931"
+    }
+  ]
+}

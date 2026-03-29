@@ -1,0 +1,18 @@
+{
+  "session_id": "incri_20260329_030006_1d546c3a",
+  "username": "incri",
+  "started_at": "2026-03-29T03:00:06.694967",
+  "ended_at": "2026-03-29T03:00:41.057391",
+  "messages": [
+    {
+      "sender": "user",
+      "text": "i am feeling good now",
+      "timestamp": "2026-03-29T03:00:36.340100"
+    },
+    {
+      "sender": "serene",
+      "text": "That's fantastic to hear! It sounds like you've really turned things around, and that's a testament to your resilience and effort. Let's make sure we capture this feeling. Take a moment to really notice what's different right now. What specific thing contributed most to you feeling good right now?",
+      "timestamp": "2026-03-29T03:00:39.223311"
+    }
+  ]
+}

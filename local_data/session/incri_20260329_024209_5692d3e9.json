@@ -1,0 +1,18 @@
+{
+  "session_id": "incri_20260329_024209_5692d3e9",
+  "username": "incri",
+  "started_at": "2026-03-29T02:42:09.663157",
+  "ended_at": null,
+  "messages": [
+    {
+      "sender": "user",
+      "text": "Hello, I feel anxious today",
+      "timestamp": "2026-03-29T02:42:09.689200"
+    },
+    {
+      "sender": "serene",
+      "text": "Oh, my dear, I hear you. Feeling anxious can be such a heavy weight to carry, and it takes real courage to acknowledge it. Just recognizing this feeling is a powerful first step. If a close friend came to you right now and said they were feeling anxious today, what gentle words or advice might you offer them?",
+      "timestamp": "2026-03-29T02:42:12.552086"
+    }
+  ]
+}
