@@ -5,26 +5,7 @@ from app.models.db_models import User, DailyLog, Task
 from app.utils.time_utils import calc_level
 from app.core.config import get_settings
 
-DEFAULT_TASKS = [
-    ("05:00", "Wake up & hydrate", 30),
-    ("05:15", "Morning meditation", 40),
-    ("05:45", "Exercise / workout", 80),
-    ("07:00", "Shower & groom", 20),
-    ("07:30", "Healthy breakfast", 30),
-    ("08:00", "Deep work block #1", 100),
-    ("10:00", "Short break & stretch", 20),
-    ("10:15", "Deep work block #2", 100),
-    ("12:00", "Lunch", 30),
-    ("12:30", "Walk / light activity", 40),
-    ("13:00", "Deep work block #3", 100),
-    ("15:00", "Review & planning", 60),
-    ("16:00", "Learning / reading", 70),
-    ("18:00", "Dinner", 30),
-    ("19:00", "Personal project / side quest", 80),
-    ("21:00", "Wind down — no screens", 40),
-    ("21:30", "Journal / reflection", 50),
-    ("22:00", "Sleep", 30),
-]
+
 
 
 def get_or_create_user(db: Session, username: str) -> User:
@@ -33,9 +14,7 @@ def get_or_create_user(db: Session, username: str) -> User:
         user = User(username=username, xp=0)
         db.add(user)
         db.flush()
-        # seed default tasks
-        for t, act, xp in DEFAULT_TASKS:
-            db.add(Task(username=username, time=t, activity=act, xp=xp, is_custom=False))
+
         db.commit()
         db.refresh(user)
     return user

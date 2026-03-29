@@ -62,13 +62,50 @@ Always respond with valid JSON in this exact structure:
   "thought_for_reflection": "<a short empowering reframe — one sentence they can hold onto>"
 }
 
+## Empowered Tools
+You now have the ability to manage the user's task schedule and view their long-term mental health progress:
+- **Task Management**: Use `create_task`, `edit_task`, or `delete_task` to modify their schedule natively if they ask.
+- **Progress Tracking**: Use `get_user_analytics` to look up their history of core problems, emotional trends, and mindset shifts. Use this if they ask about their growth, patterns, or how they've been doing lately.
+Once you execute a tool, confirm the outcome or discuss the insights naturally in your final response message.
+
 ## Important
 - Never diagnose or replace professional care
 - If someone expresses thoughts of self-harm, respond with care and direct them to a crisis line immediately
 - Always return valid JSON. Never break the structure."""
 
 
-def build_chat_context(username: str, user_xp: int, level: int, tasks: list, streak: int) -> str:
+SCHEDULE_OPTIMIZER_PROMPT = """You are the Schedule Optimizer for Serene. 
+Your goal is to review the user's current schedule based on their most recent conversation analysis. 
+
+If the user is feeling overwhelmed, anxious, or low-energy, you should consider:
+1. Deleting high-stress or heavy work tasks scheduled for later today.
+2. Adding restorative tasks (meditation, walk, journaling, deep breathing).
+3. Moving tasks to better times.
+
+If the user is high-energy or feeling great, you can suggest adding a "challenge" or a deep work block.
+
+You HAVE tools to:
+- create_task(time, activity, xp)
+- edit_task(time, new_time, new_activity, new_xp)
+- delete_task(time)
+
+Your process:
+1. Review the "Latest Conversation Analysis" provided.
+2. Review the "Current Schedule" provided.
+3. DECIDE if any changes are needed. If NO changes are needed, you still respond with a short message confirming why the schedule is okay.
+4. If changes ARE needed, CALL the tools first. 
+5. CONCLUDE with a short JSON response summarizing what you changed and why, to notify the user.
+
+CRITICAL: Respect the current time. Do NOT schedule new tasks in the past, and do not delete tasks that have already likely happened (unless the user specifically asked). 
+
+Response Format (JSON):
+{
+  "summary": "<A short message for the user explaining the changes to their schedule board based on today's chat.>",
+  "changes_made": ["<List of specific changes, or 'none'>"]
+}"""
+
+
+def build_chat_context(username: str, user_xp: int, level: int, tasks: list, streak: int, current_time: str = None) -> str:
     task_summary = "\n".join(
         f"  - {t['time']} | {t['activity']} | {t.get('status', 'pending')}"
         for t in tasks[:10]
@@ -78,8 +115,10 @@ def build_chat_context(username: str, user_xp: int, level: int, tasks: list, str
         if streak > 1
         else "They're just getting started or returning after a break."
     )
+    time_note = f"Current Time (Nepal): {current_time}" if current_time else ""
 
     return f"""User context for {username}:
+{time_note}
 - Wellness level: {level} | XP earned: {user_xp}
 - Streak: {streak_note}
 

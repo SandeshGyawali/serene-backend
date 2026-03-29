@@ -1,13 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.schemas import ChatRequest, ChatResponse, HistoryMessageOut
 from app.models.db_models import ChatMessage, ConversationAnalysis
 from app.service.user_service import get_or_create_user, get_user_level, get_progress
 from app.service.task_service import get_tasks
-from app.service.oracle_service import ask_oracle
+from app.service.oracle_service import ask_oracle, optimize_schedule_after_chat
 from app.service import session_file_service as sfs
 from app.service.analysis_service import analyze_session
+
+from pathlib import Path
+from datetime import datetime
+import uuid
+import re
+import os
 
 router = APIRouter(prefix="/api/v1", tags=["chat"])
 
@@ -56,6 +63,7 @@ def chat(username: str, body: ChatRequest, db: Session = Depends(get_db)):
         tasks=tasks,
         streak=progress["streak"],
         history=history,
+        db=db,
     )
 
     ai_message = result.get("message", "")
@@ -78,30 +86,48 @@ def chat(username: str, body: ChatRequest, db: Session = Depends(get_db)):
 @router.post("/voice/{username}")
 async def voice(
     username: str,
+    request: Request,
     file: UploadFile = File(...),
     duration_seconds: str = Form("0"),
     conversation_id: str = Form(None),
     db: Session = Depends(get_db),
 ):
-    from app.core.config import get_settings
-    import openai, tempfile, os
-
-    settings = get_settings()
-    client = openai.OpenAI(api_key=settings.openai_api_key)
     audio_bytes = await file.read()
+    if not audio_bytes:
+        raise HTTPException(400, "Empty audio upload")
 
-    with tempfile.NamedTemporaryFile(suffix=".webm", delete=False) as tmp:
-        tmp.write(audio_bytes)
-        tmp_path = tmp.name
+    def _safe_part(val: str, fallback: str) -> str:
+        raw = (val or "").strip()
+        cleaned = re.sub(r"[^a-zA-Z0-9._-]+", "_", raw)
+        return cleaned or fallback
 
+    audio_root = Path(__file__).resolve().parents[2] / "local_data" / "audio"
+    safe_username = _safe_part(username, "user")
+    session_part = _safe_part(conversation_id, "no_session")
+    user_dir = audio_root / safe_username / session_part
+    user_dir.mkdir(parents=True, exist_ok=True)
+
+    original_name = (file.filename or "").strip()
+    ext = Path(original_name).suffix.lower()
+    if not ext:
+        ext = ".webm"
+
+    stamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    short_id = uuid.uuid4().hex[:8]
+    audio_filename = f"{stamp}_{short_id}{ext}"
+    audio_file_path = user_dir / audio_filename
+    audio_file_path.write_bytes(audio_bytes)
+
+    audio_rel_path = f"/media/audio/{safe_username}/{session_part}/{audio_filename}"
+
+    model_name = os.getenv("SERENE_WHISPER_MODEL", "base").strip() or "base"
     try:
-        with open(tmp_path, "rb") as f:
-            transcript = client.audio.transcriptions.create(model="whisper-1", file=f, response_format="text")
-        transcribed_text = transcript.strip() if isinstance(transcript, str) else str(transcript)
+        from app.service.stt_whisper import transcribe_audio_file
+        transcribed_text = await run_in_threadpool(transcribe_audio_file, str(audio_file_path), model_name)
+    except ImportError as e:
+        raise HTTPException(500, f"Whisper dependency not installed: {e}")
     except Exception as e:
-        transcribed_text = f"[Audio transcription unavailable: {e}]"
-    finally:
-        os.unlink(tmp_path)
+        raise HTTPException(500, f"Whisper transcription failed: {e}")
 
     user = get_or_create_user(db, username)
     level = get_user_level(user)
@@ -112,7 +138,14 @@ async def voice(
 
     _save_msg(db, username, "user", transcribed_text, session_id=conversation_id)
     if conversation_id:
-        sfs.append_message(conversation_id, "user", transcribed_text)
+        sfs.append_message(
+            conversation_id,
+            "user",
+            transcribed_text,
+            kind="voice",
+            audio_path=audio_rel_path,
+            duration_seconds=duration_seconds,
+        )
 
     result = ask_oracle(
         user_input=transcribed_text,
@@ -122,6 +155,7 @@ async def voice(
         tasks=tasks,
         streak=progress["streak"],
         history=history,
+        db=db,
     )
 
     ai_message = result.get("message", "")
@@ -129,7 +163,16 @@ async def voice(
     if conversation_id:
         sfs.append_message(conversation_id, "serene", ai_message)
 
-    return {"oracle": result, "transcribed_text": transcribed_text}
+    audio_url = str(request.base_url).rstrip("/") + audio_rel_path
+    return {
+        "voice": {
+            "audio_url": audio_url,
+            "duration_seconds": duration_seconds,
+            "filename": audio_filename,
+        },
+        "oracle": result,
+        "transcribed_text": transcribed_text,
+    }
 
 
 @router.get("/history/{username}", response_model=list[HistoryMessageOut])
@@ -188,4 +231,15 @@ def analyze_conversation(username: str, session_id: str, db: Session = Depends(g
     )
     db.add(record)
     db.commit()
-    return result
+
+    # Trigger autonomous schedule optimization based on the analysis
+    try:
+        current_tasks = [{"time": t.time, "activity": t.activity, "xp": t.xp} for t in get_tasks(db, username)]
+        optimization_result = optimize_schedule_after_chat(username, result, current_tasks, db)
+    except Exception as e:
+        optimization_result = {"summary": f"Optimization failed: {str(e)}", "changes_made": []}
+
+    return {
+        "analysis": result,
+        "schedule_optimization": optimization_result
+    }

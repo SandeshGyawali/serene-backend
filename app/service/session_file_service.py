@@ -31,17 +31,34 @@ def create_session_file(session_id: str, username: str) -> Path:
     return path
 
 
-def append_message(session_id: str, sender: str, text: str) -> None:
+def append_message(
+    session_id: str,
+    sender: str,
+    text: str,
+    *,
+    kind: str = "text",
+    audio_path: str | None = None,
+    duration_seconds: float | int | None = None,
+) -> None:
     """Append a single message to the session file. Silently no-ops if file missing."""
     path = _file_path(session_id)
     if not path.exists():
         return
     data = json.loads(path.read_text())
-    data["messages"].append({
+    msg = {
         "sender": sender,
         "text": text,
         "timestamp": datetime.utcnow().isoformat(),
-    })
+        "kind": kind,
+    }
+    if audio_path:
+        msg["audio_path"] = audio_path
+    if duration_seconds is not None:
+        try:
+            msg["duration_seconds"] = float(duration_seconds)
+        except Exception:
+            pass
+    data["messages"].append(msg)
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False))
 
 
