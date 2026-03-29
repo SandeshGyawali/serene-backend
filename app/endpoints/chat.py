@@ -63,6 +63,7 @@ def chat(username: str, body: ChatRequest, db: Session = Depends(get_db)):
         tasks=tasks,
         streak=progress["streak"],
         history=history,
+        db=db,
     )
 
     ai_message = result.get("message", "")
@@ -154,6 +155,7 @@ async def voice(
         tasks=tasks,
         streak=progress["streak"],
         history=history,
+        db=db,
     )
 
     ai_message = result.get("message", "")

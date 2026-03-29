@@ -4,6 +4,8 @@ from google import genai
 from google.genai import types as genai_types
 from app.core.config import get_settings
 from app.utils.oracle_prompt import ORACLE_SYSTEM_PROMPT, build_chat_context
+from app.service.oracle_tools import TaskOracleTools
+from sqlalchemy.orm import Session
 
 settings = get_settings()
 _client = None
@@ -59,6 +61,7 @@ def ask_oracle(
     tasks: list,
     streak: int,
     history: list = None,
+    db: Session = None,
 ) -> dict:
     """
     history: list of {"sender": "user"|"serene", "text": str} — all prior messages in this session.
@@ -69,16 +72,46 @@ def ask_oracle(
 
     contents = _build_contents(history or [], user_input)
 
+    tools_helper = None
+    tools_list = None
+    if db:
+        tools_helper = TaskOracleTools(db, username)
+        tools_list = tools_helper.get_tools()
+
     try:
+        config = genai_types.GenerateContentConfig(
+            system_instruction=system,
+            temperature=0.7,
+            max_output_tokens=1024,
+            tools=tools_list
+        )
         response = client.models.generate_content(
             model=MODEL,
             contents=contents,
-            config=genai_types.GenerateContentConfig(
-                system_instruction=system,
-                temperature=0.7,
-                max_output_tokens=1024,
-            ),
+            config=config,
         )
+        
+        if response.function_calls:
+            contents.append(response.candidates[0].content)
+            
+            func_response_parts = []
+            if tools_helper:
+                for fc in response.function_calls:
+                     result_str = tools_helper.execute_tool(fc.name, fc.args)
+                     func_response_parts.append(
+                         genai_types.Part.from_function_response(
+                             name=fc.name,
+                             response={"result": result_str}
+                         )
+                     )
+            contents.append(genai_types.Content(role="user", parts=func_response_parts))
+            
+            response = client.models.generate_content(
+                model=MODEL,
+                contents=contents,
+                config=config,
+            )
+
         return _extract_json(response.text)
     except Exception as e:
         return {"message": f"Oracle error: {str(e)[:300]}", "action": "none", "actionData": None}

@@ -28,7 +28,7 @@ def create_custom_task(db: Session, username: str, data: TaskCreate) -> Task:  #
 
 def update_custom_task(db: Session, username: str, time: str, data: TaskUpdate) -> Optional[Task]:
     task = db.query(Task).filter(
-        Task.username == username, Task.time == time, Task.is_custom == True
+        Task.username == username, Task.time == time
     ).first()
     if not task:
         return None
@@ -45,7 +45,7 @@ def update_custom_task(db: Session, username: str, time: str, data: TaskUpdate) 
 
 def delete_custom_task(db: Session, username: str, time: str) -> bool:
     task = db.query(Task).filter(
-        Task.username == username, Task.time == time, Task.is_custom == True
+        Task.username == username, Task.time == time
     ).first()
     if not task:
         return False
