@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from app.models.schemas import TaskCreate, TaskUpdate
+from app.models.db_models import ConversationAnalysis
 from app.service.task_service import create_custom_task, update_custom_task, delete_custom_task
 
 class TaskOracleTools:
@@ -50,9 +52,49 @@ class TaskOracleTools:
             return f"Error: Task at {time} not found."
         except Exception as e:
             return f"Error deleting task: {str(e)}"
+
+    def get_user_analytics(self) -> str:
+        """Get summarized long-term mental health analytics and emotional trends for the user. 
+        Use this when the user asks about their progress, emotional patterns, or how they have been feeling lately.
+        """
+        try:
+            # Get last 10 session analyses
+            rows = (
+                self.db.query(ConversationAnalysis)
+                .filter(ConversationAnalysis.username == self.username)
+                .order_by(ConversationAnalysis.analyzed_at.desc())
+                .limit(10)
+                .all()
+            )
+            if not rows:
+                return "The user has no recorded session analyses yet."
+
+            summary = []
+            for r in rows:
+                summary.append(
+                    f"- {r.analyzed_at.date() if r.analyzed_at else 'Unknown Date'}: "
+                    f"Problem: {r.core_problem}. "
+                    f"Feelings: {r.initial_feelings} -> {r.final_feelings}. "
+                    f"Progress: {r.progress_made}. "
+                    f"Shift: {r.mindset_shift}"
+                )
+            
+            # Brief trends summary
+            total = len(summary)
+            top_problems = list(set([r.core_problem for r in rows if r.core_problem]))[:3]
+            
+            return f"""Total sessions analyzed: {total}
+Summary of last 10 entries:
+{chr(10).join(summary)}
+
+Key recurring themes/problems recently:
+{chr(10).join([f"- {p}" for p in top_problems])}"""
+
+        except Exception as e:
+            return f"Error fetching analytics: {str(e)}"
             
     def get_tools(self):
-        return [self.create_task, self.edit_task, self.delete_task]
+        return [self.create_task, self.edit_task, self.delete_task, self.get_user_analytics]
         
     def execute_tool(self, name: str, args: dict) -> str:
         if name == "create_task":
@@ -61,5 +103,7 @@ class TaskOracleTools:
             return self.edit_task(**args)
         elif name == "delete_task":
             return self.delete_task(**args)
+        elif name == "get_user_analytics":
+            return self.get_user_analytics()
         else:
             return f"Error: Unknown tool {name}"

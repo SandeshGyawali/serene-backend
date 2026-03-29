@@ -6,7 +6,7 @@ from app.models.schemas import ChatRequest, ChatResponse, HistoryMessageOut
 from app.models.db_models import ChatMessage, ConversationAnalysis
 from app.service.user_service import get_or_create_user, get_user_level, get_progress
 from app.service.task_service import get_tasks
-from app.service.oracle_service import ask_oracle
+from app.service.oracle_service import ask_oracle, optimize_schedule_after_chat
 from app.service import session_file_service as sfs
 from app.service.analysis_service import analyze_session
 
@@ -231,4 +231,15 @@ def analyze_conversation(username: str, session_id: str, db: Session = Depends(g
     )
     db.add(record)
     db.commit()
-    return result
+
+    # Trigger autonomous schedule optimization based on the analysis
+    try:
+        current_tasks = [{"time": t.time, "activity": t.activity, "xp": t.xp} for t in get_tasks(db, username)]
+        optimization_result = optimize_schedule_after_chat(username, result, current_tasks, db)
+    except Exception as e:
+        optimization_result = {"summary": f"Optimization failed: {str(e)}", "changes_made": []}
+
+    return {
+        "analysis": result,
+        "schedule_optimization": optimization_result
+    }

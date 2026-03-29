@@ -91,3 +91,16 @@ class ConversationAnalysis(Base):
 
     # Raw AI response preserved in case schema evolves
     raw_response = Column(JSON, nullable=True)
+
+
+class PlannerSnapshot(Base):
+    """Stores a backup of the user's tasks before the autonomous planner run."""
+    __tablename__ = "planner_snapshots"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String, index=True, nullable=False)
+    snapshot_date = Column(DateTime, server_default=func.now(), index=True)
+    created_at = Column(DateTime, server_default=func.now())
+    
+    # Store the entire task list as a JSON blob for easy restoration
+    tasks_json = Column(JSON, nullable=False)
