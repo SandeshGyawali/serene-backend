@@ -52,7 +52,6 @@ def analyze_session(messages: list[dict]) -> dict:
             contents=prompt,
             config=genai_types.GenerateContentConfig(
                 system_instruction=ANALYSIS_PROMPT,
-                response_mime_type="application/json",
                 temperature=0.3,
                 max_output_tokens=1024,
             ),
