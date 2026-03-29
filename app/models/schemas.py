@@ -1,6 +1,28 @@
 from pydantic import BaseModel
 from datetime import datetime, date
-from typing import Optional, Any
+from typing import Optional, Any, List
+
+
+# ── Auth ──────────────────────────────────────────────────────────────────────
+
+class RegisterRequest(BaseModel):
+    username: str
+    password: str
+    name: Optional[str] = None
+    email: Optional[str] = None
+
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class LoginResponse(BaseModel):
+    username: str
+    name: Optional[str] = None
+    email: Optional[str] = None
+    level: int = 1
+    xp: int = 0
 
 
 # ── User ─────────────────────────────────────────────────────────────────────
@@ -37,6 +59,7 @@ class TaskBase(BaseModel):
     activity: str
     xp: int = 50
     is_custom: bool = False
+    task_source: str = "default"   # "default" | "ai" | "custom"
 
 
 class TaskCreate(TaskBase):
@@ -63,6 +86,7 @@ class DailyTaskEntry(BaseModel):
     activity: str
     xp: int
     is_custom: bool
+    task_source: str = "default"   # "default" | "ai" | "custom"
     period: Optional[str] = None
     status: str = "pending"
     executed_at: Optional[datetime] = None
@@ -150,3 +174,55 @@ class SessionNewResponse(BaseModel):
 
 class SessionEndRequest(BaseModel):
     conversation_id: str
+
+
+# ── Blog ──────────────────────────────────────────────────────────────────────
+
+class BlogCommentCreate(BaseModel):
+    content: str
+
+
+class BlogCommentOut(BaseModel):
+    id: int
+    post_id: int
+    username: str
+    content: str
+    created_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class BlogPostCreate(BaseModel):
+    title: str
+    content: str
+    mood: Optional[str] = None
+    tags: Optional[List[str]] = None
+
+
+class BlogPostUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    mood: Optional[str] = None
+    tags: Optional[List[str]] = None
+
+
+class BlogPostOut(BaseModel):
+    id: int
+    username: str
+    title: str
+    content: str
+    mood: Optional[str] = None
+    tags: Optional[List[str]] = None
+    likes: Optional[List[str]] = None
+    like_count: int = 0
+    comment_count: int = 0
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class BlogPostDetail(BlogPostOut):
+    comments: List[BlogCommentOut] = []

@@ -28,6 +28,7 @@ def get_daily_plan(db: Session, username: str) -> list[dict]:
             "activity": t.activity,
             "xp": t.xp,
             "is_custom": t.is_custom,
+            "task_source": getattr(t, "task_source", "default"),
             "period": get_period(t.time),
             "status": log.status if log else "pending",
             "executed_at": log.executed_at if log else None,

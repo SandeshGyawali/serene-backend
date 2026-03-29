@@ -1,17 +1,25 @@
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from app.core.config import get_settings
 from app.core.database import init_db
-from app.endpoints import user, tasks, daily, chat, completions, admin
+from app.endpoints import user, tasks, daily, chat, completions, admin, blog, auth_router
 
 settings = get_settings()
+_log = logging.getLogger("serene.backend")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    if not settings.gemini_configured:
+        _log.warning(
+            "GEMINI_API_KEY is unset or still 'dummy_key'. Oracle chat will fail until you set a real key. "
+            "Create one at https://aistudio.google.com/apikey and add GEMINI_API_KEY to serene-backend/.env "
+            "(then restart uvicorn). Frontend VITE_GEMINI_API_KEY does not apply to server-side Oracle calls."
+        )
     yield
 
 
@@ -44,6 +52,8 @@ app.include_router(daily.router)
 app.include_router(chat.router)
 app.include_router(completions.router)
 app.include_router(admin.router)
+app.include_router(blog.router)
+app.include_router(auth_router.router)
 
 
 @app.get("/health")

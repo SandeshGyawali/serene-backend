@@ -4,7 +4,7 @@ from app.core.database import get_db
 from app.models.schemas import ChatRequest, ChatResponse, HistoryMessageOut
 from app.models.db_models import ChatMessage, ConversationAnalysis
 from app.service.user_service import get_or_create_user, get_user_level, get_progress
-from app.service.task_service import get_tasks
+from app.service.task_service import get_tasks, replace_ai_tasks
 from app.service.oracle_service import ask_oracle
 from app.service import session_file_service as sfs
 from app.service.analysis_service import analyze_session
@@ -188,4 +188,14 @@ def analyze_conversation(username: str, session_id: str, db: Session = Depends(g
     )
     db.add(record)
     db.commit()
+
+    # Replace AI-generated tasks with the ones from this analysis
+    new_tasks = result.get("new_tasks", [])
+    if new_tasks and isinstance(new_tasks, list):
+        try:
+            replace_ai_tasks(db, username, new_tasks)
+        except Exception as e:
+            # Non-fatal — log and continue; the analysis result is still returned
+            print(f"[analyze_conversation] Failed to replace AI tasks: {e}")
+
     return result

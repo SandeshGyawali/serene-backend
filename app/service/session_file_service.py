@@ -1,8 +1,9 @@
 """
-Manages per-conversation JSON files stored in local_data/session/.
+Manages per-conversation JSON files stored in local_data/session/ and
+custom task JSON files stored in local_data/custom_tasks/.
 
-File naming: {username}_{YYYYMMDD_HHMMSS}_{short_id}.json
-Each file holds the full conversation: metadata + all messages.
+Session file naming: {session_id}.json
+Custom tasks file: local_data/custom_tasks/{username}.json
 """
 import json
 import os
@@ -11,6 +12,63 @@ from pathlib import Path
 
 SESSION_DIR = Path(__file__).resolve().parents[2] / "local_data" / "session"
 SESSION_DIR.mkdir(parents=True, exist_ok=True)
+
+CUSTOM_TASKS_DIR = Path(__file__).resolve().parents[2] / "local_data" / "custom_tasks"
+CUSTOM_TASKS_DIR.mkdir(parents=True, exist_ok=True)
+
+
+# ── Custom Task JSON helpers ──────────────────────────────────────────────────
+
+def _custom_tasks_path(username: str) -> Path:
+    return CUSTOM_TASKS_DIR / f"{username}.json"
+
+
+def get_custom_tasks(username: str) -> list[dict]:
+    """Return all custom tasks for a user from JSON file."""
+    path = _custom_tasks_path(username)
+    if not path.exists():
+        return []
+    try:
+        return json.loads(path.read_text())
+    except Exception:
+        return []
+
+
+def save_custom_task(username: str, task: dict) -> dict:
+    """Add or update a custom task in the JSON file (keyed by time)."""
+    tasks = get_custom_tasks(username)
+    # Replace existing task with same time or append
+    updated = False
+    for i, t in enumerate(tasks):
+        if t.get("time") == task.get("time"):
+            tasks[i] = task
+            updated = True
+            break
+    if not updated:
+        tasks.append(task)
+    _custom_tasks_path(username).write_text(json.dumps(tasks, indent=2, ensure_ascii=False))
+    return task
+
+
+def update_custom_task_json(username: str, original_time: str, updated_task: dict) -> bool:
+    """Update an existing custom task identified by original_time."""
+    tasks = get_custom_tasks(username)
+    for i, t in enumerate(tasks):
+        if t.get("time") == original_time:
+            tasks[i] = updated_task
+            _custom_tasks_path(username).write_text(json.dumps(tasks, indent=2, ensure_ascii=False))
+            return True
+    return False
+
+
+def delete_custom_task_json(username: str, time: str) -> bool:
+    """Remove a custom task by time from JSON file."""
+    tasks = get_custom_tasks(username)
+    new_tasks = [t for t in tasks if t.get("time") != time]
+    if len(new_tasks) == len(tasks):
+        return False  # not found
+    _custom_tasks_path(username).write_text(json.dumps(new_tasks, indent=2, ensure_ascii=False))
+    return True
 
 
 def _file_path(session_id: str) -> Path:

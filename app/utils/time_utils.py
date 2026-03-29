@@ -41,7 +41,7 @@ def calc_xp(base_xp: int, time_diff: float) -> tuple[int, float, str]:
         feedback = "Significantly delayed. Better tomorrow."
     else:
         percent = 0.25
-        feedback = "Very late. The Oracle notes your struggle."
+        feedback = "Very late. Serene notes your struggle."
 
     earned = max(1, round(base_xp * percent))
     return earned, percent, feedback

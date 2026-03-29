@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, Date, Text, JSON
+from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, Date, Text, JSON, ForeignKey
 from sqlalchemy.sql import func
 from app.core.database import Base
 
@@ -9,12 +9,13 @@ class User(Base):
     username = Column(String, primary_key=True, index=True)
     email = Column(String, nullable=True)
     name = Column(String, nullable=True)
+    password_hash = Column(String, nullable=True)   # bcrypt hash; nullable so existing rows survive
     xp = Column(Integer, default=0)
     created_at = Column(DateTime, server_default=func.now())
 
 
 class Task(Base):
-    """Persistent tasks (both life.md defaults and custom)."""
+    """Persistent tasks: default (constitution), ai (generated), or custom (user-created)."""
     __tablename__ = "tasks"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -23,6 +24,8 @@ class Task(Base):
     activity = Column(String, nullable=False)
     xp = Column(Integer, default=50)
     is_custom = Column(Boolean, default=False)
+    # task_source: "default" | "ai" | "custom"
+    task_source = Column(String, default="default", nullable=False, server_default="default")
 
 
 class DailyLog(Base):
@@ -91,3 +94,29 @@ class ConversationAnalysis(Base):
 
     # Raw AI response preserved in case schema evolves
     raw_response = Column(JSON, nullable=True)
+
+
+class BlogPost(Base):
+    """Community blog posts shared across users."""
+    __tablename__ = "blog_posts"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String, index=True, nullable=False)
+    title = Column(String, nullable=False)
+    content = Column(Text, nullable=False)
+    mood = Column(String, nullable=True)          # e.g. "anxious", "hopeful"
+    tags = Column(JSON, nullable=True)             # list of strings
+    likes = Column(JSON, nullable=True, default=list)  # list of usernames who liked
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+
+
+class BlogComment(Base):
+    """Comments on blog posts."""
+    __tablename__ = "blog_comments"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    post_id = Column(Integer, ForeignKey("blog_posts.id", ondelete="CASCADE"), nullable=False, index=True)
+    username = Column(String, nullable=False, index=True)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())

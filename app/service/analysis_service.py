@@ -10,7 +10,7 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
-ANALYSIS_PROMPT = """You are a clinical-insight AI. You will be given a transcript of a therapy/coaching conversation between a user and an AI companion called Serene.
+ANALYSIS_PROMPT = """You are a clinical-insight AI and tactical life coach. You will be given a transcript of a therapy/coaching conversation between a user and an AI companion called Serene.
 
 Analyze the conversation carefully and return a JSON object with exactly these fields:
 
@@ -22,8 +22,22 @@ Analyze the conversation carefully and return a JSON object with exactly these f
   "final_energy": "<one of: very_low | low | neutral | high | very_high — based on their tone at the end>",
   "mindset_shift": "<1-2 sentences: what perspective shift or insight emerged during the conversation, if any>",
   "progress_made": "<one of: significant | moderate | slight | none — how much positive movement happened>",
-  "recommendations": ["<2-3 short actionable suggestions for the user going forward>"]
+  "recommendations": ["<2-3 short actionable suggestions for the user going forward>"],
+  "new_tasks": [
+    {
+      "activity": "<short task name, e.g. 'Morning Breathing Exercise'>",
+      "time": "<HH:MM in 24-hour format, e.g. '07:00'>",
+      "xp": <integer between 30 and 100 based on effort>
+    }
+  ]
 }
+
+For the new_tasks field: generate 3-5 personalized daily tasks based on the user's mental state, core problem, and what would genuinely help them.
+- If the user is anxious: include grounding, breathing, and mindfulness tasks.
+- If the user is depressed or low energy: include small wins, movement, and social connection tasks.
+- If the user is in growth mode: include challenging, skill-building tasks.
+- Space tasks across the day (morning, afternoon, evening).
+- Keep activity names concise and actionable (under 8 words).
 
 Only return valid JSON. No extra text."""
 
@@ -79,4 +93,5 @@ def _empty_analysis() -> dict:
         "mindset_shift": "No significant shift detected.",
         "progress_made": "none",
         "recommendations": [],
+        "new_tasks": [],
     }

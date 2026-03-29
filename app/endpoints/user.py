@@ -20,8 +20,8 @@ def get_user(username: str, db: Session = Depends(get_db)):
 
 
 @router.get("/stats/process/{username}", response_model=ProcessStats)
-def process_stats(username: str):
-    return get_process_stats(username)
+def process_stats(username: str, db: Session = Depends(get_db)):
+    return get_process_stats(db, username)
 
 
 @router.get("/progress/{username}", response_model=ProgressOut)

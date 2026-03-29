@@ -18,18 +18,72 @@ def _get_client() -> genai.Client:
     return _client
 
 
-def _extract_json(text: str) -> dict:
+def _strip_json_markdown_artifacts(text: str) -> str:
+    """Remove ```json ... ``` blocks and trim — for display when the model duplicates JSON."""
+    if not text:
+        return text
+    out = re.sub(r"```(?:json)?\s*[\s\S]*?\s*```", "", text, flags=re.IGNORECASE).strip()
+    return out if out else text.strip()
+
+
+def _try_decode_json_object(raw: str) -> dict | None:
+    """Find a JSON object in a string (handles prose + JSON or markdown fences)."""
+    raw = raw.strip()
+    if not raw:
+        return None
     try:
-        return json.loads(text)
+        obj = json.loads(raw)
+        return obj if isinstance(obj, dict) else None
     except json.JSONDecodeError:
         pass
-    match = re.search(r"\{.*\}", text, re.DOTALL)
-    if match:
+    for m in re.finditer(r"```(?:json)?\s*([\s\S]*?)\s*```", raw, flags=re.IGNORECASE):
+        inner = m.group(1).strip()
+        if inner.startswith("{"):
+            try:
+                obj = json.loads(inner)
+                if isinstance(obj, dict):
+                    return obj
+            except json.JSONDecodeError:
+                continue
+    dec = json.JSONDecoder()
+    for i, ch in enumerate(raw):
+        if ch != "{":
+            continue
         try:
-            return json.loads(match.group())
+            obj, _ = dec.raw_decode(raw, i)
+            if isinstance(obj, dict):
+                return obj
+        except json.JSONDecodeError:
+            continue
+    return None
+
+
+def _finalize_oracle_dict(d: dict) -> dict:
+    """Keep only user-facing text in `message` (no duplicate JSON / code fences)."""
+    msg = d.get("message")
+    if isinstance(msg, str):
+        cleaned = _strip_json_markdown_artifacts(msg).strip()
+        if cleaned != msg:
+            d = {**d, "message": cleaned}
+            msg = cleaned
+        try:
+            inner = json.loads(msg)
+            if isinstance(inner, dict) and isinstance(inner.get("message"), str):
+                d = {**d, **inner}
+                d["message"] = _strip_json_markdown_artifacts(inner["message"]).strip()
         except json.JSONDecodeError:
             pass
-    return {"message": text, "action": "none", "actionData": None}
+    return d
+
+
+def _extract_json(text: str) -> dict:
+    if not text:
+        return {"message": "", "action": "none", "actionData": None}
+    obj = _try_decode_json_object(text)
+    if obj is not None:
+        return _finalize_oracle_dict(obj)
+    cleaned = _strip_json_markdown_artifacts(text)
+    return {"message": cleaned, "action": "none", "actionData": None}
 
 
 def _build_contents(history: list[dict], current_input: str) -> list:
@@ -107,6 +161,9 @@ def ask_oracle_completion(messages: list) -> str:
             ),
         )
         raw = _extract_json(response.text)
-        return raw.get("message") or response.text
+        msg = raw.get("message") or response.text
+        if isinstance(msg, str):
+            msg = _strip_json_markdown_artifacts(msg).strip()
+        return msg or response.text
     except Exception as e:
         return f"Oracle error: {str(e)[:300]}"

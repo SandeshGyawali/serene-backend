@@ -3,7 +3,6 @@ from sqlalchemy import func
 from datetime import date
 from app.models.db_models import User, DailyLog, Task
 from app.utils.time_utils import calc_level
-from app.core.config import get_settings
 
 DEFAULT_TASKS = [
     ("05:00", "Wake up & hydrate", 30),
@@ -53,12 +52,16 @@ def add_xp(db: Session, username: str, amount: int) -> User:
     return user
 
 
-def get_process_stats(username: str) -> dict:
-    settings = get_settings()
-    start = settings.process_start
+def get_process_stats(db: Session, username: str) -> dict:
+    user = db.query(User).filter(User.username == username).first()
+    if user and user.created_at:
+        start = user.created_at.date()
+    else:
+        # fallback: use config date for legacy rows without created_at
+        from app.core.config import get_settings
+        start = get_settings().process_start
     today = date.today()
-    delta = today - start
-    total_days = delta.days
+    total_days = max(0, (today - start).days)
     return {
         "days": total_days,
         "weeks": total_days // 7,
